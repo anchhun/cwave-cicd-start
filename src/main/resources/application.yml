@@ -5,6 +5,7 @@ on:
     branches: [ "develop"]
   pull_request:
     branches: [ "develop"]
+
 jobs:
   verify_pipeline:
     environment: runner
@@ -44,9 +45,9 @@ jobs:
         cat > src/main/resources/application.yml << EOF
         spring:
           datasource:
-            url: ${{ secrets.DATABASE_URL }} # 예dbc:mysql://localhost:3306/istory
-            username: ${{ secrets.MYSQL_USER }}
-            password: ${{ secrets.MYSQL_PASSWORD }}
+            url: ${DATABASE_URL} # GitHub Secrets의 DATABASE_URL 사용
+            username: ${MYSQL_USER}
+            password: ${MYSQL_PASSWORD}
             driver-class-name: com.mysql.cj.jdbc.Driver
           jpa:
             database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -67,8 +68,9 @@ jobs:
             health:
               show-details: always
         EOF
+
     - name: 테스트 수행
-      run: ./gradlew test
+      run: ./gradlew test --info
 
     - name: 테스트 검사 후 실패 시 파이프라인 중단
       if: failure()
@@ -76,12 +78,12 @@ jobs:
         echo "Tests failed! Pipeline will be stopped."
         exit 1
 
-    - name: 테스트 결과를 STEP Summary 에 업로드
+    - name: 테스트 결과를 STEP Summary에 업로드
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-report
-        path: |                    # 여러 경로 지정
+        path: |
           **/build/reports/tests/test/
           **/build/test-results/test/
-        retention-days: 30 
+        retention-days: 30
