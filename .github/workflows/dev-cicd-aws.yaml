@@ -7,6 +7,7 @@ on:
     branches: [ "develop","main" ]
 jobs:
   verify_pipeline:
+  	runs-on: ubuntu-latest
     steps:
     - name: Source Code Checkout
       uses: actions/checkout@v4 
