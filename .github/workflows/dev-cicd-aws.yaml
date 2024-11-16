@@ -8,6 +8,7 @@ on:
 jobs:
   verify_pipeline:
     runs-on: ubuntu-latest
+    environment: runner
     services:
       mysql:
         image: mysql:8.0
