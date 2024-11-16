@@ -7,7 +7,7 @@ on:
     branches: [ "develop","main" ]
 jobs:
   verify_pipeline:
-  	runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
     services:
       mysql:
         image: mysql:8.0
