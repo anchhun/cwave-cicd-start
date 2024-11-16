@@ -20,6 +20,8 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
           # 사용자 계정 데이터베이스
           MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_ALLOW_EMPTY_PASSWORD: ${{ secrets.MYSQL_ALLOW_EMPTY_PASSWORD }}
+          MYSQL_RANDOM_ROOT_PASSWORD: ${{ secrets.MYSQL_RANDOM_ROOT_PASSWORD }}
         ports:
           - 3306:3306
         options: >-
