@@ -1,0 +1,20 @@
+name: istory ci/cd dev pipeline
+
+on:
+  push:
+    branches: [ "develop","main" ]
+  pull_request:
+    branches: [ "develop","main" ]
+jobs:
+  verify_pipeline:
+    steps:
+    - name: Source Code Checkout
+      uses: actions/checkout@v4 
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Run test java
+      run: ./gradlew test
