@@ -1,149 +1,199 @@
-name: istory ci/cd dev pipeline!
+name: istory ci/cd dev pipeline
 
 on:
   push:
-    branches: [ "develop","main" ]
+    branches: [ "develop", "main" ]
   pull_request:
-    branches: [ "develop","main" ]
+    branches: [ "develop", "main" ]
+
 jobs:
   verify_pipeline:
     runs-on: ubuntu-latest
     environment: runner
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          # root 계정 비밀번호
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          # 사용자 계정
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          # 사용자 계정 비밀번호
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          # 사용자 계정 데이터베이스
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+    # services:
+    #   mysql:
+    #     image: mysql:8.0
+    #     env:
+    #       # root 계정 비밀번호
+    #       MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+    #       # 사용자 계정
+    #       MYSQL_USER: ${{ secrets.MYSQL_USER }}
+    #       # 사용자 계정 비밀번호
+    #       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+    #       # 사용자 계정 데이터베이스
+    #       MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+    #     ports:
+    #       - 3306:3306
+    #     options: >-
+    #       --health-cmd="mysqladmin ping"
+    #       --health-interval=10s
+    #       --health-timeout=5s
+    #       --health-retries=3
+
     steps:
-     - name: Source Code Checkout
-       uses: actions/checkout@v4 
+    #   - name: Source Code Checkout
+    #     uses: actions/checkout@v4
 
-     - name: Set up JDK 17
-       uses: actions/setup-java@v4
-       with:
-         java-version: '17'
-         distribution: 'temurin'
-     - name: change application.yml
-       run: |
-         cat > src/main/resources/application.yml << EOF
-         spring:
-           datasource:
-             url: ${{ secrets.DATABASE_URL }} # 예dbc:mysql://localhost:3306/istory
-             username: ${{ secrets.MYSQL_USER }}
-             password: ${{ secrets.MYSQL_PASSWORD }}
-             driver-class-name: com.mysql.cj.jdbc.Driver
-           jpa:
-             database-platform: org.hibernate.dialect.MySQL8Dialect
-             hibernate:
-               ddl-auto: update
-             show-sql: true
-           application:
-             name: USER-SERVICE
-           jwt:
-             issuer: user@gmail.com
-             secret_key: study-springboot
-         management:
-           endpoints:
-             web:
-               exposure:
-                 include: health,info
-           endpoint:
-             health:
-               show-details: always
-         EOF
-     - name: Run test java
-       run: ./gradlew test
-     - name: 테스트 검사 후 실패 시 파이프라인 중단
-       if: failure()
-       run: |
-         echo "Tests failed! Pipeline will be stopped."
-         exit 1
+    #   - name: Set up JDK 17
+    #     uses: actions/setup-java@v4
+    #     with:
+    #       java-version: '17'
+    #       distribution: 'temurin'
 
-     - name: 테스트 결과를 STEP Summary 에 업로드
-       if: always()
-       uses: actions/upload-artifact@v4
-       with:
-         name: test-report
-         path: |                    # 여러 경로 지정
-          **/build/reports/tests/test/
-          **/build/test-results/test/
-         retention-days: 30   
-     - name: Generate Basic Info in Markdown
-       run: |
-         echo "## 워크플로우 실행 정보 요약" >> $GITHUB_STEP_SUMMARY
-         echo "" >> $GITHUB_STEP_SUMMARY
-         echo "* 실행 담당자: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-         echo "* 실행 이벤트: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-         echo "* 실행 저장소: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-         echo "* 실행 브랜치: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY   
-     - name: Run Checkstyle
-       run: |
-         mkdir -p build/reports/checkstyle
-         ./gradlew checkstyleMain checkstyleTest --info
-         ls -la build/reports/checkstyle || true  
-     - name: Upload Checkstyle results
-       if: always()
-       uses: actions/upload-artifact@v4
-       with:
-         name: checkstyle-report
-         path: build/reports/checkstyle/
-         retention-days: 14 
-     - name: Generate list using Markdown
-       run: |
-          echo "## 코드 스타일 분석결과" >> $GITHUB_STEP_SUMMARY
+    #   - name: Change application.yml
+    #     run: |
+    #       cat > src/main/resources/application.yml << EOF
+    #       spring:
+    #         datasource:
+    #           url: ${{ secrets.DATABASE_URL }}  # 예: jdbc:mysql://localhost:3306/istory
+    #           username: ${{ secrets.MYSQL_USER }}
+    #           password: ${{ secrets.MYSQL_PASSWORD }}
+    #           driver-class-name: com.mysql.cj.jdbc.Driver
+    #         jpa:
+    #           database-platform: org.hibernate.dialect.MySQL8Dialect
+    #           hibernate:
+    #             ddl-auto: update
+    #           show-sql: true
+    #         application:
+    #           name: USER-SERVICE
+    #         jwt:
+    #           issuer: user@gmail.com
+    #           secret_key: study-springboot
+    #       management:
+    #         endpoints:
+    #           web:
+    #             exposure:
+    #               include: health,info
+    #         endpoint:
+    #           health:
+    #             show-details: always
+    #       EOF
+
+    #   - name: Run tests
+    #     run: ./gradlew test
+
+    #   - name: 테스트 검사 후 실패 시 파이프라인 중단
+    #     if: failure()
+    #     run: |
+    #       echo "Tests failed! Pipeline will be stopped."
+    #       exit 1
+
+    #   - name: 테스트 결과를 STEP Summary에 업로드
+    #     if: always()
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: test-report
+    #       path: |
+    #         **/build/reports/tests/test/
+    #         **/build/test-results/test/
+    #       retention-days: 30
+
+      - name: Generate Basic Info in Markdown
+        run: |
+          echo "## 워크플로우 실행 정보 요약" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f build/reports/checkstyle/main.xml ]; then # 소스분석결과 존재시
-            echo "### 소스분석결과" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat build/reports/checkstyle/main.xml >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          fi
-     - name: Initialize CodeQL
-       uses: github/codeql-action/init@v3
-       with:
-         languages: java
-         queries: security-and-quality
+          echo "* 실행 담당자: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "* 실행 이벤트: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "* 실행 저장소: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "* 실행 브랜치: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
 
-     - name: Autobuild
-       uses: github/codeql-action/autobuild@v3
+    #   - name: Run Checkstyle
+    #     run: |
+    #       mkdir -p build/reports/checkstyle
+    #       ./gradlew checkstyleMain checkstyleTest --info
+    #       ls -la build/reports/checkstyle || true
 
-     - name: Perform CodeQL Analysis
-       uses: github/codeql-action/analyze@v3
-       with:
-           category: "/language:java"
-           output: sarif-results
-     - name: Generate CodeQL Summary
-       run: |
-         echo "# 파이프라인 리포트" >> $GITHUB_STEP_SUMMARY
-         echo "## 보안 경고" >> $GITHUB_STEP_SUMMARY
-            
-         if [ -f sarif-results/java.sarif ]; then
-           if jq -e '.runs[0].results' sarif-results/java.sarif > /dev/null 2>&1; then
-             ALERTS=$(jq '.runs[].results | length' sarif-results/java.sarif)
-             echo "${ALERTS}개의 잠재적인 보안 이슈가 발견 되었습니다." >> $GITHUB_STEP_SUMMARY
-                
-             echo "### 보안 경고 상세" >> $GITHUB_STEP_SUMMARY
-             echo "| Severity | Rule | Description | File |" >> $GITHUB_STEP_SUMMARY
-             echo "|----------|------|-------------|------|" >> $GITHUB_STEP_SUMMARY
-                
-             jq -r '.runs[].results[] | "| \(.properties.security_severity // "medium") | \(.ruleId // "N/A") | \(.message.text // "N/A") | \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine) |"' sarif-results/java.sarif >> $GITHUB_STEP_SUMMARY || true
-           else
-             echo "No results found in SARIF file." >> $GITHUB_STEP_SUMMARY
-           fi
-         else
-           echo "No SARIF results file found." >> $GITHUB_STEP_SUMMARY
-         fi
+    #   - name: Upload Checkstyle results
+    #     if: always()
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: checkstyle-report
+    #       path: build/reports/checkstyle/
+    #       retention-days: 14
+
+    #   - name: Generate list using Markdown
+    #     run: |
+    #       echo "## 코드 스타일 분석결과" >> $GITHUB_STEP_SUMMARY
+    #       echo "" >> $GITHUB_STEP_SUMMARY
+    #       if [ -f build/reports/checkstyle/main.xml ]; then  # 소스분석결과 존재시
+    #         echo "### 소스분석결과" >> $GITHUB_STEP_SUMMARY
+    #         echo '```' >> $GITHUB_STEP_SUMMARY
+    #         cat build/reports/checkstyle/main.xml >> $GITHUB_STEP_SUMMARY
+    #         echo '```' >> $GITHUB_STEP_SUMMARY
+    #       fi
+
+    #   - name: Initialize CodeQL
+    #     uses: github/codeql-action/init@v3
+    #     with:
+    #       languages: java
+    #       queries: security-and-quality
+
+    #   - name: Autobuild
+    #     uses: github/codeql-action/autobuild@v3
+
+    #   - name: Perform CodeQL Analysis
+    #     uses: github/codeql-action/analyze@v3
+    #     with:
+    #       category: "/language:java"
+    #       output: sarif-results
+
+    #   - name: Generate CodeQL Summary
+    #     run: |
+    #       echo "# 파이프라인 리포트" >> $GITHUB_STEP_SUMMARY
+    #       echo "## 보안 경고" >> $GITHUB_STEP_SUMMARY
+
+    #       if [ -f sarif-results/java.sarif ]; then
+    #         if jq -e '.runs[0].results' sarif-results/java.sarif > /dev/null 2>&1; then
+    #           ALERTS=$(jq '.runs[].results | length' sarif-results/java.sarif)
+    #           echo "${ALERTS}개의 잠재적인 보안 이슈가 발견 되었습니다." >> $GITHUB_STEP_SUMMARY
+
+    #           echo "### 보안 경고 상세" >> $GITHUB_STEP_SUMMARY
+    #           echo "| Severity | Rule | Description | File |" >> $GITHUB_STEP_SUMMARY
+    #           echo "|----------|------|-------------|------|" >> $GITHUB_STEP_SUMMARY
+
+    #           jq -r '.runs[].results[] | "| \(.properties.security_severity // "medium") | \(.ruleId // "N/A") | \(.message.text // "N/A") | \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine) |"' sarif-results/java.sarif >> $GITHUB_STEP_SUMMARY || true
+    #         else
+    #           echo "No results found in SARIF file." >> $GITHUB_STEP_SUMMARY
+    #         fi
+    #       else
+    #         echo "No SARIF results file found." >> $GITHUB_STEP_SUMMARY
+    #       fi
+  
+  build-and-upload:
+    # needs: [verify-pipeline]  # 기존 검증 후 실행
+    runs-on: ubuntu-latest
+    #environment: ${{ github.ref == 'refs/heads/main' && 'prd' || 'dev' }}
+    environment: dev
+    
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: roqkfdyd
+        run: |
+          cat > src/main/resources/application.yml << EOF
+          spring:
+            datasource:
+              url: ${{ secrets.DATABASE_URL }} # 예dbc:mysql://localhost:3306/istory
+              username: ${{ secrets.MYSQL_USERNAME }}
+              password: ${{ secrets.MYSQL_PASSWORD }}
+              driver-class-name: com.mysql.cj.jdbc.Driver
+            jpa:
+              database-platform: org.hibernate.dialect.MySQL8Dialect
+              hibernate:
+                ddl-auto: update
+              show-sql: true
+            application:
+              name: USER-SERVICE
+            jwt:
+              issuer: user@gmail.com
+              secret_key: study-springboot
+          management:
+            endpoints:
+              web:
+                exposure:
+                  include: health,info
+            endpoint:
+              health:
+                show-details: always
+          EOF
